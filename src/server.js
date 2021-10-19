@@ -20,6 +20,13 @@ const MensajeService = require("./services/mensajes");
 const { Mongoose } = require("mongoose");
 const MongoStore = require("connect-mongo");
 
+//----------------------------------------------------------------------
+// COMPRESIÓN
+//----------------------------------------------------------------------
+const compression = require('compression');
+app.use(compression())
+//----------------------------------------------------------------------
+
 /* -------------- OBJECT PROCESS ----------- */
 
 // -------------- MODO FORK -------------------
