@@ -27,6 +27,16 @@ const compression = require('compression');
 app.use(compression())
 //----------------------------------------------------------------------
 
+//----------------------------------------------------------------------
+// LOGGERS
+//----------------------------------------------------------------------
+const logger = require('./logs/logger');
+
+const loggerInfo = logger.getLogger('info');
+const loggerWarn = logger.getLogger('warn');
+const loggerError = logger.getLogger('error');
+//----------------------------------------------------------------------
+
 /* -------------- OBJECT PROCESS ----------- */
 
 // -------------- MODO FORK -------------------
@@ -59,14 +69,16 @@ const cluster = require("cluster");
 const numCpus = require("os").cpus().length;
 
 if (SERVER_MODE === "cluster" && cluster.isMaster) {
-  console.log(`PID MASTER ${process.pid}`);
-  console.log(numCpus);
+
+  loggerInfo.info(`Número de procesadores: ${numCpus}`)
+  loggerInfo.info(`PID MASTER ${process.pid}`)
+
   for (let i = 0; i < numCpus; i++) {
     cluster.fork();
   }
 
   cluster.on("exit", (worker) => {
-    console.log(
+    loggerInfo.info(
       "Worker",
       worker.process.pid,
       "died",
@@ -75,7 +87,6 @@ if (SERVER_MODE === "cluster" && cluster.isMaster) {
     cluster.fork();
   });
 } else {
-  //console.log('Proceso N°: ', process.pid);
 
   /* -------------- PASSPORT ----------------- */
   const passport = require("passport");
@@ -83,6 +94,9 @@ if (SERVER_MODE === "cluster" && cluster.isMaster) {
   const LocalStrategy = require("passport-local").Strategy;
   const FacebookStrategy = require("passport-facebook").Strategy;
   const User = require("./dao/models/usuarios");
+
+  loggerInfo.info(FACEBOOK_APP_ID)
+  loggerInfo.info(FACEBOOK_APP_SECRET)
 
   passport.use(
     new FacebookStrategy(
@@ -111,7 +125,7 @@ if (SERVER_MODE === "cluster" && cluster.isMaster) {
                 provider: "facebook",
               });
               user.save((err) => {
-                if (err) console.log(err);
+                if (err) loggerError.error(err);
                 return done(err, user);
               });
             } else {
@@ -146,14 +160,14 @@ if (SERVER_MODE === "cluster" && cluster.isMaster) {
           if (err) return done(err);
           // Username does not exist, log error & redirect back
           if (!user) {
-            console.log("User Not Found with username " + username);
-            console.log("message", "User Not found.");
+            loggerWarn.warn("User Not Found with username " + username);
+            loggerWarn.warn("message", "User Not found.");
             return done(null, false);
           }
           // User exists but wrong password, log the error
           if (!isValidPassword(user, password)) {
-            console.log("Invalid Password");
-            console.log("message", "Invalid Password");
+            loggerError.error("Invalid Password");
+            loggerError.error("Invalid Password");
             return done(null, false);
           }
           // User and password both match, return user from
@@ -180,13 +194,13 @@ if (SERVER_MODE === "cluster" && cluster.isMaster) {
           User.findOne({ username: username }, function (err, user) {
             // In case of any error return
             if (err) {
-              console.log("Error in SignUp: " + err);
+              loggerError.error("Error in SignUp: " + err);
               return done(err);
             }
             // already exists
             if (user) {
-              console.log("User already exists");
-              console.log("message", "User Already Exists");
+              loggerWarn.warn("User already exists");
+              loggerWarn.warn("message", "User Already Exists");
               return done(null, false);
             } else {
               // if there is no user with that email
@@ -199,10 +213,10 @@ if (SERVER_MODE === "cluster" && cluster.isMaster) {
               // save the user
               newUser.save(function (err) {
                 if (err) {
-                  console.log("Error in Saving user: " + err);
+                  loggerError.error("Error in Saving user: " + err);
                   throw err;
                 }
-                console.log("User Registration succesful");
+                loggerInfo.info("User Registration succesful");
                 return done(null, newUser);
               });
             }

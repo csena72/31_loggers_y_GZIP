@@ -28,6 +28,7 @@
     "express": "^4.17.1",
     "express-handlebars": "^5.3.3",
     "express-session": "^1.17.2",
+    "log4js": "^6.3.0",
     "moment": "^2.29.1",
     "mongoose": "^6.0.5",
     "mongoose-findorcreate": "^3.0.0",
